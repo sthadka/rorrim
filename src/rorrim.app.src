@@ -1,0 +1,12 @@
+{application, rorrim,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { rorrim_app, []}},
+  {env, []}
+ ]}.
