@@ -1,13 +1,13 @@
-%%%-------------------------------------------------------------------
-%%% @doc Rorrim scm
-%%% Module to download and maintain different Software Configuration
-%%% Management repositories
-%%%
-%%% Based on rebar
-%%%
-%%% @since 04-04-2013
-%%% @end
-%%%-------------------------------------------------------------------
+%% -------------------------------------------------------------------
+%% @doc Rorrim SCM
+%% Module to download and maintain different software configuration
+%% management repositories.
+%%
+%% Based on rebar deps code.
+%%
+%% @since 04-04-2013
+%% @end
+%% -------------------------------------------------------------------
 -module(rorrim_scm).
 
 -include("rorrim.hrl").
@@ -35,14 +35,20 @@ download_repo(#repo{scm_type=git, scm_rev=undefined}=RepoDetails) ->
     download_repo(RepoDetails#repo{scm_rev={branch, "HEAD"}});
 download_repo(#repo{scm_type=git, scm_rev=""}=RepoDetails) ->
     download_repo(RepoDetails#repo{scm_rev={branch, "HEAD"}});
-download_repo(#repo{scm_type=git, name=Name, scm_url=Url, scm_rev={branch, Branch}}) ->
+download_repo(#repo{scm_type=git, name=Name, scm_url=Url, scm_rev=Rev}) ->
     RepoDir = repo_dir(Name),
     ok = filelib:ensure_dir(RepoDir),
-    rorrim_util:sh(?FMT("git clone -n ~s ~s", [Url,
-                                               filename:basename(RepoDir)]),
+    rorrim_util:sh(?FMT("git clone -n ~s ~s",
+                        [Url, filename:basename(RepoDir)]),
                    [{cd, ?REPO_DIR}]),
-    rorrim_util:sh(?FMT("git checkout -q origin/~s", [Branch]),
-                   [{cd, RepoDir}]).
+    case Rev of
+        {branch, Branch} ->
+            rorrim_util:sh(?FMT("git checkout -q origin/~s", [Branch]),
+                           [{cd, RepoDir}]);
+        {tag, Tag} ->
+            rorrim_util:sh(?FMT("git checkout -q ~s", [Tag]),
+                           [{cd, RepoDir}])
+    end.
 
 
 update_repo(#repo{}=RepoDetails) ->
