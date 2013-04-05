@@ -10,6 +10,8 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
+    lager:start(),
+    rorrim_conf:new(),
     rorrim_sup:start_link().
 
 stop(_State) ->

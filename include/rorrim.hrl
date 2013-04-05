@@ -1,3 +1,21 @@
+%% Record definition
+-record(repo, {
+               name,
+               scm_type,
+               scm_url,
+               scm_rev,
+               interval
+        }).
+
+
+%% File paths
+-define(CONF, "priv/repo.conf").
+-define(REPO_DIR, "repo/").
+
+
+-define(FMT(Str, Args),
+        lists:flatten(io_lib:format(Str, Args))).
+
 %% Logging macros
 -ifdef(debug).
 -define(DEBUG(Msg),
@@ -46,8 +64,5 @@
 -define(EMERGENCY(Msg, Args),
     lager:emergency(Msg, Args)).
 
-%% File paths
--define(CONF, "priv/repo.conf").
--define(REPO_DIR, "repo").
-
-
+-define(CONSOLE(Str, Args),
+        io:format(Str, Args)).
