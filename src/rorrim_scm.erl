@@ -20,8 +20,9 @@ create(Repo) ->
 update(Repo) ->
     update_repo(rorrim_conf:get(Repo)).
 
-delete(Repo) ->
-    delete_repo(rorrim_conf:get(Repo)).
+delete(RepoName) ->
+    AppDir = rorrim_util:app_dir(RepoName),
+    rorrim_util:sh(?FMT("rm -rf ~s", [AppDir]), []).
 
 
 %% -------------------------------------------------------------------
@@ -29,7 +30,7 @@ delete(Repo) ->
 %% -------------------------------------------------------------------
 
 download_repo(#repo{scm_type=git, name=Name, scm_url=Url, scm_rev=Rev}) ->
-    AppDir = app_dir(Name),
+    AppDir = rorrim_util:app_dir(Name),
     ok = filelib:ensure_dir(AppDir),
     rorrim_util:sh(?FMT("git clone -n ~s ~s",
                         [Url, filename:basename(AppDir)]),
@@ -44,7 +45,7 @@ download_repo(#repo{scm_type=git, name=Name, scm_url=Url, scm_rev=Rev}) ->
     end.
 
 update_repo(#repo{scm_type=git, name=Name, scm_rev=Rev}) ->
-    AppDir = app_dir(Name),
+    AppDir = rorrim_util:app_dir(Name),
     ok = filelib:ensure_dir(AppDir),
     rorrim_util:sh("git fetch origin", [{cd, AppDir}]),
     case Rev of
@@ -55,10 +56,3 @@ update_repo(#repo{scm_type=git, name=Name, scm_rev=Rev}) ->
             rorrim_util:sh(?FMT("git checkout -q ~s", [Tag]),
                            [{cd, AppDir}])
     end.
-
-delete_repo(#repo{name=Name}) ->
-    AppDir = app_dir(Name),
-    rorrim_util:sh(?FMT("rm -rf ~s", [AppDir]), []).
-
-app_dir(RepoName) ->
-    ?REPO_DIR ++ rorrim_util:get_list(RepoName).

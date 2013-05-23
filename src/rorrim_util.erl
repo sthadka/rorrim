@@ -12,25 +12,38 @@
 -include("rorrim.hrl").
 
 -export([
-         get_conf/0,
-         get_list/1,
-         sh/2
-        ]).
+    get_file_conf/0,
+    set_conf/0, set_conf/1,
+    as_list/1,
+    sh/2,
+    app_dir/1,
+    get_all_repo_dir/0
+    ]).
 
-get_conf() ->
+%% Reads config files and returns then as records
+get_file_conf() ->
     {ok, [Config]} = file:consult(?CONF),
     lists:map(fun ({Name, Type, Url, Rev, Int}) ->
                       #repo{name=Name, scm_type=Type, scm_url=Url,
                             scm_rev=Rev, interval=Int}
               end, Config).
 
-get_list(B) when is_binary(B) ->
+set_conf() ->
+    set_conf(get_file_conf()).
+
+set_conf(RepoConfs) ->
+    lists:foreach(fun (RepoConf) ->
+                          rorrim_conf:set(RepoConf#repo.name, RepoConf)
+                  end, RepoConfs).
+
+
+as_list(B) when is_binary(B) ->
     binary_to_list(B);
-get_list(A) when is_atom(A) ->
+as_list(A) when is_atom(A) ->
     atom_to_list(A);
-get_list(I) when is_integer(I) ->
+as_list(I) when is_integer(I) ->
     integer_to_list(I);
-get_list(L) when is_list(L) ->
+as_list(L) when is_list(L) ->
     L.
 
 %%
@@ -126,4 +139,11 @@ log_msg_and_abort(Message) ->
     fun(_Command, {_Rc, _Output}) ->
             abort(Message, [])
     end.
+
+app_dir(RepoName) ->
+    ?REPO_DIR ++ rorrim_util:as_list(RepoName).
+
+get_all_repo_dir() ->
+    {ok, AllFiles} = file:list_dir(?REPO_DIR),
+    [Dir || Dir <- AllFiles, filelib:is_dir(app_dir(Dir))].
 
